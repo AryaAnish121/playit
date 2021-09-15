@@ -53,36 +53,40 @@ client.on('message', (message) => {
             if (!result) {
               const textLyrics = await playMusic(artist, song);
               const songLocaltion = v4();
-              await say.export(
-                textLyrics,
-                null,
-                null,
-                `songs/${songLocaltion}.wav`,
-                (err) => {
-                  if (err) {
-                    return console.error(err);
-                  }
-                  const songLyrics = new Lyrics({
-                    song: `${artist}/${song}`,
-                    location: `songs/${songLocaltion}.wav`,
-                  });
-                  songLyrics.save((err) => {
+              if (!textLyrics) {
+                message.reply('Song not found.');
+              } else {
+                await say.export(
+                  textLyrics,
+                  null,
+                  null,
+                  `songs/${songLocaltion}.wav`,
+                  (err) => {
                     if (err) {
-                      console.log(err);
-                    } else {
-                      voice.channel
-                        .join()
-                        .then((connection) => {
-                          connection.play(
-                            path.join('./songs/' + songLocaltion + '.wav')
-                          );
-                          message.reply(':thumbsup: Done..');
-                        })
-                        .catch((err) => console.log(err));
+                      return console.error(err);
                     }
-                  });
-                }
-              );
+                    const songLyrics = new Lyrics({
+                      song: `${artist}/${song}`,
+                      location: `songs/${songLocaltion}.wav`,
+                    });
+                    songLyrics.save((err) => {
+                      if (err) {
+                        console.log(err);
+                      } else {
+                        voice.channel
+                          .join()
+                          .then((connection) => {
+                            connection.play(
+                              path.join('./songs/' + songLocaltion + '.wav')
+                            );
+                            message.reply(':thumbsup: Done..');
+                          })
+                          .catch((err) => console.log(err));
+                      }
+                    });
+                  }
+                );
+              }
             } else {
               voice.channel
                 .join()
